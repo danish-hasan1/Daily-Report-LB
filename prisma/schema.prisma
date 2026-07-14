@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ActivityType {
+  SUBMISSION
+  INTERVIEW
+}
+
+enum SourceType {
+  INTERNAL
+  VENDOR
+}
+
+enum RoleStatus {
+  OPEN
+  FILLED
+  CLOSED
+  ON_HOLD
+}
+
+model Recruiter {
+  id         String     @id @default(cuid())
+  name       String
+  active     Boolean    @default(true)
+  startMonth String?
+  notes      String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  activities Activity[]
+
+  @@index([active])
+}
+
+model Vendor {
+  id         String     @id @default(cuid())
+  name       String
+  contact    String?
+  email      String?
+  phone      String?
+  notes      String?
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  activities Activity[]
+
+  @@index([active])
+}
+
+model Role {
+  id          String     @id @default(cuid())
+  title       String
+  client      String?
+  status      RoleStatus @default(OPEN)
+  priority    String?
+  dateOpened  DateTime?
+  dateClosed  DateTime?
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  activities  Activity[]
+
+  @@index([status])
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  date        DateTime
+  type        ActivityType
+  sourceType  SourceType
+  recruiterId String
+  recruiter   Recruiter    @relation(fields: [recruiterId], references: [id])
+  roleId      String
+  role        Role         @relation(fields: [roleId], references: [id])
+  vendorId    String?
+  vendor      Vendor?      @relation(fields: [vendorId], references: [id])
+  notes       String?
+  createdAt   DateTime     @default(now())
+
+  @@index([date])
+  @@index([recruiterId])
+  @@index([roleId])
+  @@index([vendorId])
+  @@index([type])
+}
