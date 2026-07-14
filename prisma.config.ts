@@ -3,12 +3,28 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+// Some Postgres providers (Vercel Postgres, Neon's Vercel integration) inject
+// the connection string under a different env var name than DATABASE_URL.
+// Fall back through the common ones so `prisma migrate deploy` doesn't fail
+// at build time just because the variable was named differently.
+const databaseUrl =
+  process.env["DATABASE_URL"] ||
+  process.env["POSTGRES_PRISMA_URL"] ||
+  process.env["POSTGRES_URL"] ||
+  process.env["POSTGRES_URL_NON_POOLING"];
+
+if (!databaseUrl) {
+  throw new Error(
+    "No database connection string found. Set DATABASE_URL (or POSTGRES_PRISMA_URL / POSTGRES_URL) in your environment."
+  );
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: databaseUrl,
   },
 });

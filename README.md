@@ -33,12 +33,15 @@ A single-user web app for logging daily recruiter submissions and interviews (in
 ## Deploying to Vercel
 
 1. Push this repo to GitHub and import it into Vercel.
-2. Add a Postgres database (Vercel Postgres / Neon integration, or any Postgres you control) and set these environment variables in Vercel:
-   - `DATABASE_URL`
+2. Add a Postgres database and connect it to the project:
+   - **Vercel Postgres / Neon (Vercel marketplace integration)**: connecting it to the project auto-injects env vars like `POSTGRES_URL` / `POSTGRES_PRISMA_URL` — the app looks for those automatically if `DATABASE_URL` isn't set, so no extra step needed. If you'd rather be explicit, add a `DATABASE_URL` env var yourself with the same value.
+   - **Any other Postgres** (Supabase, Railway, your own): set `DATABASE_URL` manually in Vercel's Environment Variables.
+3. Also set in Vercel's Environment Variables:
    - `APP_PASSWORD` — the password you'll use to sign in
    - `SESSION_SECRET` — any long random string
-3. Set the Vercel **Build Command** to `npm run vercel-build` (this generates the Prisma client, applies migrations, then builds — so the database schema is always in sync with what you deploy).
-4. Deploy. Visit the site and sign in with `APP_PASSWORD`.
+4. Make sure these variables are enabled for the **Production** environment (and Preview, if you want preview deployments to work) — a variable scoped only to one environment won't be visible during a build for another. This is the most common cause of `The datasource.url property is required` during build.
+5. Set the Vercel **Build Command** to `npm run vercel-build` (this generates the Prisma client, applies migrations, then builds — so the database schema is always in sync with what you deploy).
+6. Deploy. Visit the site and sign in with `APP_PASSWORD`.
 
 ## Day-to-day usage
 
