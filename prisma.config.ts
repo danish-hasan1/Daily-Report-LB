@@ -3,10 +3,11 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
-// Some Postgres providers (Vercel Postgres, Neon's Vercel integration) inject
-// the connection string under a different env var name than DATABASE_URL.
-// Fall back through the common ones so `prisma migrate deploy` doesn't fail
-// at build time just because the variable was named differently.
+// This URL is used only by the Prisma CLI for migrations (`prisma migrate
+// deploy`). Migrations need a DIRECT (non-pooled) connection — they don't
+// work reliably through a pgbouncer/pooler endpoint — so prefer the
+// unpooled connection strings that hosts like Vercel Postgres / Neon inject,
+// then fall back to the pooled ones.
 //
 // Note: this file is loaded for every Prisma CLI command, including
 // `prisma generate`, which does not touch the database. Don't throw here if
@@ -15,10 +16,11 @@ import { defineConfig } from "prisma/config";
 // actually need the database (like `migrate deploy`) will fail on their own
 // with a clear error if the URL is genuinely missing.
 const databaseUrl =
+  process.env["POSTGRES_URL_NON_POOLING"] || // legacy Vercel Postgres (direct)
+  process.env["DATABASE_URL_UNPOOLED"] || // Neon native integration (direct)
   process.env["DATABASE_URL"] ||
   process.env["POSTGRES_PRISMA_URL"] ||
-  process.env["POSTGRES_URL"] ||
-  process.env["POSTGRES_URL_NON_POOLING"];
+  process.env["POSTGRES_URL"];
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
