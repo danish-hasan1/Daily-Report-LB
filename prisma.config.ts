@@ -16,6 +16,7 @@ import { defineConfig } from "prisma/config";
 // actually need the database (like `migrate deploy`) will fail on their own
 // with a clear error if the URL is genuinely missing.
 const databaseUrl =
+  process.env["DIRECT_URL"] || // Prisma-standard name for the direct/migration URL
   process.env["POSTGRES_URL_NON_POOLING"] || // legacy Vercel Postgres (direct)
   process.env["DATABASE_URL_UNPOOLED"] || // Neon native integration (direct)
   process.env["DATABASE_URL"] ||
