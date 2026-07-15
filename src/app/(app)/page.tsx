@@ -2,6 +2,10 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getActivitiesInRange, summarize, byRecruiter } from "@/lib/reports";
 
+// Always render on demand — this view reflects live database state and must
+// not be prerendered (which would also require a DB connection at build time).
+export const dynamic = "force-dynamic";
+
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }

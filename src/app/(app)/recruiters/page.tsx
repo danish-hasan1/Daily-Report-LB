@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { addRecruiter } from "./actions";
 import { RecruiterRowActions } from "./row-actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function RecruitersPage() {
   const recruiters = await prisma.recruiter.findMany({
     orderBy: [{ active: "desc" }, { name: "asc" }],

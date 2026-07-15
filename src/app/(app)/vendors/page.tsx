@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { addVendor } from "./actions";
 import { VendorRowActions } from "./row-actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function VendorsPage() {
   const vendors = await prisma.vendor.findMany({
     orderBy: [{ active: "desc" }, { name: "asc" }],

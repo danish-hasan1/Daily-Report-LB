@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { addRole } from "./actions";
 import { RoleRowActions } from "./row-actions";
 
+export const dynamic = "force-dynamic";
+
 const statusStyles: Record<string, string> = {
   OPEN: "bg-emerald-100 text-emerald-700",
   ON_HOLD: "bg-amber-100 text-amber-700",

@@ -32,16 +32,36 @@ A single-user web app for logging daily recruiter submissions and interviews (in
 
 ## Deploying to Vercel
 
+The build does **not** connect to the database (all data pages render on
+demand), so deploys are robust even on serverless. You create the tables once,
+directly in your database.
+
 1. Push this repo to GitHub and import it into Vercel.
-2. Add a Postgres database and connect it to the project:
-   - **Vercel Postgres / Neon (Vercel marketplace integration)**: connecting it to the project auto-injects env vars like `POSTGRES_URL` / `POSTGRES_PRISMA_URL` — the app looks for those automatically if `DATABASE_URL` isn't set, so no extra step needed. If you'd rather be explicit, add a `DATABASE_URL` env var yourself with the same value.
-   - **Any other Postgres** (Supabase, Railway, your own): set `DATABASE_URL` manually in Vercel's Environment Variables.
-3. Also set in Vercel's Environment Variables:
+2. Create a Postgres database (Supabase, Neon, Vercel Postgres, etc.).
+3. **Create the tables once**: open your database's SQL editor (in Supabase:
+   **SQL Editor → New query**), paste the contents of [`prisma/setup.sql`](prisma/setup.sql),
+   and run it. That's the whole schema.
+4. In Vercel's **Settings → Environment Variables**, set these for the
+   **Production** environment (and Preview if you want preview deploys):
+   - `DATABASE_URL` — your database connection string (for Supabase, use the
+     **transaction pooler**, port `6543`, which is IPv4 and works from Vercel)
    - `APP_PASSWORD` — the password you'll use to sign in
    - `SESSION_SECRET` — any long random string
-4. Make sure these variables are enabled for the **Production** environment (and Preview, if you want preview deployments to work) — a variable scoped only to one environment won't be visible during a build for another. This is the most common cause of `The datasource.url property is required` during build.
-5. Set the Vercel **Build Command** to `npm run vercel-build` (this generates the Prisma client, applies migrations, then builds — so the database schema is always in sync with what you deploy).
-6. Deploy. Visit the site and sign in with `APP_PASSWORD`.
+   - `DIRECT_URL` *(optional)* — a direct/session-pooler connection string, only
+     needed if you later run `npm run db:migrate:deploy` from your own machine
+5. Set the Vercel **Build Command** to `npm run vercel-build`.
+6. Deploy, then open the site and sign in with `APP_PASSWORD`.
+
+> **Supabase note:** use the **pooler** hostnames (`...pooler.supabase.com`), not
+> the direct `db.<ref>.supabase.co` host — the latter is IPv6-only and Vercel
+> can't reach it. Make sure the project isn't paused.
+
+### Changing the schema later
+
+Because migrations don't run during the build, if the data model changes you
+apply the update once to your database — either by running
+`npm run db:migrate:deploy` locally (with `DIRECT_URL` pointing at a direct
+connection) or by running the new migration's SQL in your database's SQL editor.
 
 ## Day-to-day usage
 
