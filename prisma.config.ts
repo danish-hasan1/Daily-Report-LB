@@ -7,17 +7,18 @@ import { defineConfig } from "prisma/config";
 // the connection string under a different env var name than DATABASE_URL.
 // Fall back through the common ones so `prisma migrate deploy` doesn't fail
 // at build time just because the variable was named differently.
+//
+// Note: this file is loaded for every Prisma CLI command, including
+// `prisma generate`, which does not touch the database. Don't throw here if
+// the URL is missing — `prisma generate` must keep working without a DB
+// connection (e.g. during `npm install`'s postinstall step). Commands that
+// actually need the database (like `migrate deploy`) will fail on their own
+// with a clear error if the URL is genuinely missing.
 const databaseUrl =
   process.env["DATABASE_URL"] ||
   process.env["POSTGRES_PRISMA_URL"] ||
   process.env["POSTGRES_URL"] ||
   process.env["POSTGRES_URL_NON_POOLING"];
-
-if (!databaseUrl) {
-  throw new Error(
-    "No database connection string found. Set DATABASE_URL (or POSTGRES_PRISMA_URL / POSTGRES_URL) in your environment."
-  );
-}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
