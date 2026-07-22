@@ -18,7 +18,7 @@ export async function toggleRecruiterActive(id: string, active: boolean) {
 }
 
 export async function deleteRecruiter(id: string) {
-  const count = await prisma.activity.count({ where: { recruiterId: id } });
+  const count = await prisma.submission.count({ where: { recruiterId: id } });
   if (count > 0) {
     await prisma.recruiter.update({ where: { id }, data: { active: false } });
   } else {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { addActivity } from "./actions";
+import { useRef, useState } from "react";
+import { createSubmission } from "./actions";
 
 type Option = { id: string; name: string };
 
@@ -16,38 +16,59 @@ export function EntryForm({
   vendors: Option[];
   roles: Option[];
 }) {
+  const [recruiterId, setRecruiterId] = useState("");
   const [sourceType, setSourceType] = useState<"INTERNAL" | "VENDOR">("INTERNAL");
-  const [type, setType] = useState<"SUBMISSION" | "INTERVIEW">("SUBMISSION");
+  const candidateNameRef = useRef<HTMLInputElement>(null);
 
   return (
     <form
       action={async (formData) => {
-        await addActivity(formData);
+        await createSubmission(formData);
         setSourceType("INTERNAL");
-        setType("SUBMISSION");
+        candidateNameRef.current?.focus();
       }}
       className="bg-white border border-slate-200 rounded-lg p-4 space-y-4"
     >
       <input type="hidden" name="date" value={date} />
+      <input type="hidden" name="recruiterId" value={recruiterId} />
+
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="recruiterPicker">
+          Recruiter
+        </label>
+        <select
+          id="recruiterPicker"
+          required
+          value={recruiterId}
+          onChange={(e) => setRecruiterId(e.target.value)}
+          className="w-full sm:w-1/2 rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+        >
+          <option value="">Select recruiter…</option>
+          {recruiters.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-slate-400 mt-1">
+          Stays selected so you can log several candidates for the same recruiter in a row.
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="recruiterId">
-            Recruiter
+          <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="candidateName">
+            Candidate name
           </label>
-          <select
-            id="recruiterId"
-            name="recruiterId"
+          <input
+            ref={candidateNameRef}
+            id="candidateName"
+            name="candidateName"
             required
+            autoFocus
+            placeholder="e.g. Priya Sharma"
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-          >
-            <option value="">Select recruiter…</option>
-            {recruiters.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
 
         <div>
@@ -70,53 +91,27 @@ export function EntryForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <span className="block text-sm font-medium text-slate-700 mb-1">Type</span>
-          <div className="flex rounded-md border border-slate-300 overflow-hidden w-fit">
-            {(["SUBMISSION", "INTERVIEW"] as const).map((t) => (
-              <label
-                key={t}
-                className={`px-3 py-2 text-sm cursor-pointer ${
-                  type === t ? "bg-slate-900 text-white" : "bg-white text-slate-600"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="type"
-                  value={t}
-                  checked={type === t}
-                  onChange={() => setType(t)}
-                  className="sr-only"
-                />
-                {t === "SUBMISSION" ? "Submission" : "Interview"}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <span className="block text-sm font-medium text-slate-700 mb-1">Source</span>
-          <div className="flex rounded-md border border-slate-300 overflow-hidden w-fit">
-            {(["INTERNAL", "VENDOR"] as const).map((s) => (
-              <label
-                key={s}
-                className={`px-3 py-2 text-sm cursor-pointer ${
-                  sourceType === s ? "bg-slate-900 text-white" : "bg-white text-slate-600"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="sourceType"
-                  value={s}
-                  checked={sourceType === s}
-                  onChange={() => setSourceType(s)}
-                  className="sr-only"
-                />
-                {s === "INTERNAL" ? "Internal" : "Vendor"}
-              </label>
-            ))}
-          </div>
+      <div>
+        <span className="block text-sm font-medium text-slate-700 mb-1">Source</span>
+        <div className="flex rounded-md border border-slate-300 overflow-hidden w-fit">
+          {(["INTERNAL", "VENDOR"] as const).map((s) => (
+            <label
+              key={s}
+              className={`px-3 py-2 text-sm cursor-pointer ${
+                sourceType === s ? "bg-slate-900 text-white" : "bg-white text-slate-600"
+              }`}
+            >
+              <input
+                type="radio"
+                name="sourceType"
+                value={s}
+                checked={sourceType === s}
+                onChange={() => setSourceType(s)}
+                className="sr-only"
+              />
+              {s === "INTERNAL" ? "Self-sourced" : "Vendor"}
+            </label>
+          ))}
         </div>
       </div>
 
@@ -148,16 +143,17 @@ export function EntryForm({
         <input
           id="notes"
           name="notes"
-          placeholder="e.g. candidate name"
+          placeholder="e.g. profile link, CTC"
           className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
         />
       </div>
 
       <button
         type="submit"
-        className="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-800"
+        disabled={!recruiterId}
+        className="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Add entry
+        Add submission
       </button>
     </form>
   );

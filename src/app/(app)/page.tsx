@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getActivitiesInRange, summarize, byRecruiter } from "@/lib/reports";
+import { getFunnelDataInRange, summarize, byRecruiter } from "@/lib/reports";
 
 // Always render on demand — this view reflects live database state and must
 // not be prerendered (which would also require a DB connection at build time).
@@ -28,16 +28,16 @@ export default async function DashboardPage() {
   const today = todayIso();
   const monthStart = firstOfMonth();
 
-  const [todayActivities, monthActivities, openRoles, activeRecruiters] = await Promise.all([
-    getActivitiesInRange({ from: today, to: today }),
-    getActivitiesInRange({ from: monthStart, to: today }),
+  const [todayData, monthData, openRoles, activeRecruiters] = await Promise.all([
+    getFunnelDataInRange({ from: today, to: today }),
+    getFunnelDataInRange({ from: monthStart, to: today }),
     prisma.role.count({ where: { status: "OPEN" } }),
     prisma.recruiter.count({ where: { active: true } }),
   ]);
 
-  const todaySummary = summarize(todayActivities);
-  const monthSummary = summarize(monthActivities);
-  const monthByRecruiter = byRecruiter(monthActivities);
+  const todaySummary = summarize(todayData.submissions, todayData.stageEvents);
+  const monthSummary = summarize(monthData.submissions, monthData.stageEvents);
+  const monthByRecruiter = byRecruiter(monthData.submissions, monthData.stageEvents);
 
   return (
     <div className="space-y-6">

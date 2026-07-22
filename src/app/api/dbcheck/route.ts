@@ -9,11 +9,11 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const [recruiters, activities] = await Promise.all([
+    const [recruiters, submissions] = await Promise.all([
       prisma.recruiter.count(),
-      prisma.activity.count(),
+      prisma.submission.count(),
     ]);
-    return NextResponse.json({ ok: true, recruiters, activities });
+    return NextResponse.json({ ok: true, recruiters, submissions });
   } catch (e) {
     const err = e as { name?: string; message?: string; code?: string };
     return NextResponse.json(
