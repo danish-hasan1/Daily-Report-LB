@@ -12,15 +12,20 @@ export async function login(_prevState: { error?: string } | undefined, formData
     return { error: "Incorrect password" };
   }
 
-  const token = await createSessionToken();
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
+  try {
+    const token = await createSessionToken();
+    const cookieStore = await cookies();
+    cookieStore.set(SESSION_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+    });
+  } catch (err) {
+    console.error("Login failed after password check:", err);
+    return { error: "Server configuration error. Please contact the administrator." };
+  }
 
   redirect("/");
 }
