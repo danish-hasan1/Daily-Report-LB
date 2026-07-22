@@ -21,7 +21,7 @@ export async function toggleVendorActive(id: string, active: boolean) {
 }
 
 export async function deleteVendor(id: string) {
-  const count = await prisma.activity.count({ where: { vendorId: id } });
+  const count = await prisma.submission.count({ where: { vendorId: id } });
   if (count > 0) {
     await prisma.vendor.update({ where: { id }, data: { active: false } });
   } else {

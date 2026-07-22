@@ -2,6 +2,25 @@ import { prisma } from "@/lib/prisma";
 import { DatePicker } from "./date-picker";
 import { EntryForm } from "./entry-form";
 import { DeleteButton } from "./delete-button";
+import { InFlightList } from "./in-flight-list";
+
+const STAGE_LABEL: Record<string, string> = {
+  SUBMITTED: "Submission",
+  INTERVIEW: "Interview",
+  OFFER: "Offer",
+  JOINED: "Joined",
+  REJECTED: "Rejected",
+  DROPOUT: "Dropout",
+};
+
+const STAGE_DOT: Record<string, string> = {
+  SUBMITTED: "bg-blue-500",
+  INTERVIEW: "bg-amber-500",
+  OFFER: "bg-purple-500",
+  JOINED: "bg-emerald-500",
+  REJECTED: "bg-red-500",
+  DROPOUT: "bg-slate-400",
+};
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -18,29 +37,31 @@ export default async function EntryPage({
   const dayStart = new Date(`${date}T00:00:00`);
   const dayEnd = new Date(`${date}T23:59:59.999`);
 
-  const [recruiters, vendors, roles, activities] = await Promise.all([
+  const [recruiters, vendors, roles, stageEvents] = await Promise.all([
     prisma.recruiter.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
     prisma.vendor.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
     prisma.role.findMany({
       where: { status: { in: ["OPEN", "ON_HOLD"] } },
       orderBy: { title: "asc" },
     }),
-    prisma.activity.findMany({
+    prisma.stageEvent.findMany({
       where: { date: { gte: dayStart, lte: dayEnd } },
-      include: { recruiter: true, role: true, vendor: true },
+      include: { submission: { include: { recruiter: true, role: true, vendor: true } } },
       orderBy: { createdAt: "asc" },
     }),
   ]);
 
-  const byRecruiter = new Map<string, { name: string; entries: typeof activities }>();
-  for (const a of activities) {
-    const key = a.recruiterId;
-    if (!byRecruiter.has(key)) byRecruiter.set(key, { name: a.recruiter.name, entries: [] });
-    byRecruiter.get(key)!.entries.push(a);
+  const byRecruiter = new Map<string, { name: string; entries: typeof stageEvents }>();
+  for (const e of stageEvents) {
+    const key = e.submission.recruiterId;
+    if (!byRecruiter.has(key)) byRecruiter.set(key, { name: e.submission.recruiter.name, entries: [] });
+    byRecruiter.get(key)!.entries.push(e);
   }
 
-  const teamSubmissions = activities.filter((a) => a.type === "SUBMISSION").length;
-  const teamInterviews = activities.filter((a) => a.type === "INTERVIEW").length;
+  const teamSubmissions = stageEvents.filter((e) => e.type === "SUBMITTED").length;
+  const teamInterviews = stageEvents.filter((e) => e.type === "INTERVIEW").length;
+  const teamOffers = stageEvents.filter((e) => e.type === "OFFER").length;
+  const teamJoins = stageEvents.filter((e) => e.type === "JOINED").length;
 
   return (
     <div className="space-y-6">
@@ -48,7 +69,7 @@ export default async function EntryPage({
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Daily Entry</h1>
           <p className="text-slate-500 text-sm mt-1">
-            Log each recruiter&apos;s submissions and interviews during the evening summary.
+            Log new submissions and advance existing candidates during the evening summary.
           </p>
         </div>
         <DatePicker date={date} />
@@ -72,7 +93,7 @@ export default async function EntryPage({
               })}
             </h2>
             <span className="text-xs text-slate-500">
-              {teamSubmissions} submissions · {teamInterviews} interviews
+              {teamSubmissions} submissions · {teamInterviews} interviews · {teamOffers} offers · {teamJoins} joins
             </span>
           </div>
 
@@ -82,35 +103,32 @@ export default async function EntryPage({
 
           <div className="space-y-4">
             {Array.from(byRecruiter.entries()).map(([recruiterId, group]) => {
-              const subs = group.entries.filter((e) => e.type === "SUBMISSION");
-              const interviews = group.entries.filter((e) => e.type === "INTERVIEW");
-              const internalSubs = subs.filter((e) => e.sourceType === "INTERNAL").length;
-              const vendorSubs = subs.filter((e) => e.sourceType === "VENDOR").length;
+              const subs = group.entries.filter((e) => e.type === "SUBMITTED");
+              const others = group.entries.filter((e) => e.type !== "SUBMITTED");
+              const internalSubs = subs.filter((e) => e.submission.sourceType === "INTERNAL").length;
+              const vendorSubs = subs.filter((e) => e.submission.sourceType === "VENDOR").length;
 
               return (
                 <div key={recruiterId} className="border border-slate-100 rounded-md p-3">
                   <div className="flex items-baseline justify-between">
                     <span className="font-medium text-slate-900 text-sm">{group.name}</span>
                     <span className="text-xs text-slate-500">
-                      {subs.length} submissions ({internalSubs} internal, {vendorSubs} vendor)
-                      {interviews.length > 0 ? ` · ${interviews.length} interviews` : ""}
+                      {subs.length} submissions ({internalSubs} self, {vendorSubs} vendor)
+                      {others.length > 0 ? ` · ${others.length} stage update${others.length === 1 ? "" : "s"}` : ""}
                     </span>
                   </div>
                   <ul className="mt-2 space-y-1">
                     {group.entries.map((e) => (
                       <li key={e.id} className="flex items-center justify-between text-xs text-slate-600">
                         <span>
-                          <span
-                            className={`inline-block w-1.5 h-1.5 rounded-full mr-2 ${
-                              e.type === "SUBMISSION" ? "bg-blue-500" : "bg-amber-500"
-                            }`}
-                          />
-                          {e.type === "SUBMISSION" ? "Submission" : "Interview"} · {e.role.title}
-                          {" — "}
-                          {e.sourceType === "INTERNAL" ? "Internal" : e.vendor?.name ?? "Vendor"}
-                          {e.notes ? ` (${e.notes})` : ""}
+                          <span className={`inline-block w-1.5 h-1.5 rounded-full mr-2 ${STAGE_DOT[e.type]}`} />
+                          {STAGE_LABEL[e.type]} · {e.submission.candidateName} — {e.submission.role.title}
+                          {" ("}
+                          {e.submission.sourceType === "INTERNAL" ? "Self" : e.submission.vendor?.name ?? "Vendor"}
+                          {")"}
+                          {e.type === "SUBMITTED" && e.submission.notes ? ` — ${e.submission.notes}` : ""}
                         </span>
-                        <DeleteButton id={e.id} />
+                        {e.type === "SUBMITTED" && <DeleteButton id={e.submission.id} />}
                       </li>
                     ))}
                   </ul>
@@ -120,6 +138,8 @@ export default async function EntryPage({
           </div>
         </div>
       </div>
+
+      <InFlightList date={date} />
     </div>
   );
 }

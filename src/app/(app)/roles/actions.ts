@@ -30,7 +30,7 @@ export async function updateRoleStatus(id: string, status: RoleStatus) {
 }
 
 export async function deleteRole(id: string) {
-  const count = await prisma.activity.count({ where: { roleId: id } });
+  const count = await prisma.submission.count({ where: { roleId: id } });
   if (count > 0) {
     await prisma.role.update({ where: { id }, data: { status: "CLOSED" } });
   } else {

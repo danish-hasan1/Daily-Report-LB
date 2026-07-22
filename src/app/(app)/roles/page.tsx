@@ -14,7 +14,7 @@ const statusStyles: Record<string, string> = {
 export default async function RolesPage() {
   const roles = await prisma.role.findMany({
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-    include: { _count: { select: { activities: true } } },
+    include: { _count: { select: { submissions: true } } },
   });
 
   return (
@@ -77,7 +77,7 @@ export default async function RolesPage() {
               <tr key={r.id}>
                 <td className="px-4 py-2.5 text-slate-900">{r.title}</td>
                 <td className="px-4 py-2.5 text-slate-500">{r.client || "—"}</td>
-                <td className="px-4 py-2.5 text-slate-500">{r._count.activities}</td>
+                <td className="px-4 py-2.5 text-slate-500">{r._count.submissions}</td>
                 <td className="px-4 py-2.5">
                   <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[r.status]}`}>
                     {r.status.replace("_", " ")}

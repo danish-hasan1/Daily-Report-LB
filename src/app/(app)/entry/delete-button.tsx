@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { deleteActivity } from "./actions";
+import { deleteSubmission } from "./actions";
 
 export function DeleteButton({ id }: { id: string }) {
   const [pending, startTransition] = useTransition();
@@ -9,7 +9,11 @@ export function DeleteButton({ id }: { id: string }) {
   return (
     <button
       disabled={pending}
-      onClick={() => startTransition(() => deleteActivity(id))}
+      onClick={() => {
+        if (confirm("Remove this submission? This deletes its whole stage history.")) {
+          startTransition(() => deleteSubmission(id));
+        }
+      }}
       className="text-red-600 hover:text-red-800 text-xs disabled:opacity-50"
     >
       Remove

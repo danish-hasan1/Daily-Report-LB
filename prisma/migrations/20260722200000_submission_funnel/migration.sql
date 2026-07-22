@@ -1,16 +1,16 @@
--- One-time database setup for LatentBridge Recruitment Tracker.
---
--- Run this ONCE in your database to create the tables (e.g. paste it into
--- the Supabase SQL Editor and click Run). This is the same schema Prisma
--- generates; running it here avoids needing a database connection during the
--- Vercel build. Safe to re-run: it will error if the tables already exist,
--- which simply means setup is already done.
+-- Replace the flat Activity log with a Submission (funnel head record) +
+-- StageEvent (history) model, plus vendor sheet import support.
 
--- CreateEnum
-CREATE TYPE "SourceType" AS ENUM ('INTERNAL', 'VENDOR');
+-- DropForeignKey
+ALTER TABLE "Activity" DROP CONSTRAINT "Activity_recruiterId_fkey";
+ALTER TABLE "Activity" DROP CONSTRAINT "Activity_roleId_fkey";
+ALTER TABLE "Activity" DROP CONSTRAINT "Activity_vendorId_fkey";
 
--- CreateEnum
-CREATE TYPE "RoleStatus" AS ENUM ('OPEN', 'FILLED', 'CLOSED', 'ON_HOLD');
+-- DropTable
+DROP TABLE "Activity";
+
+-- DropEnum
+DROP TYPE "ActivityType";
 
 -- CreateEnum
 CREATE TYPE "SubmissionStage" AS ENUM ('SUBMITTED', 'INTERVIEWING', 'OFFER', 'JOINED', 'REJECTED', 'DROPOUT');
@@ -21,50 +21,8 @@ CREATE TYPE "StageEventType" AS ENUM ('SUBMITTED', 'INTERVIEW', 'OFFER', 'JOINED
 -- CreateEnum
 CREATE TYPE "ReasonCategory" AS ENUM ('CLIENT_REJECTED', 'CANDIDATE_DECLINED', 'NO_SHOW', 'SALARY_MISMATCH', 'POSITION_ON_HOLD', 'OTHER');
 
--- CreateTable
-CREATE TABLE "Recruiter" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "active" BOOLEAN NOT NULL DEFAULT true,
-    "startMonth" TEXT,
-    "notes" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Recruiter_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Vendor" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "contact" TEXT,
-    "email" TEXT,
-    "phone" TEXT,
-    "notes" TEXT,
-    "active" BOOLEAN NOT NULL DEFAULT true,
-    "columnMapping" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Vendor_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Role" (
-    "id" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "client" TEXT,
-    "status" "RoleStatus" NOT NULL DEFAULT 'OPEN',
-    "priority" TEXT,
-    "dateOpened" TIMESTAMP(3),
-    "dateClosed" TIMESTAMP(3),
-    "notes" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Role_pkey" PRIMARY KEY ("id")
-);
+-- AlterTable
+ALTER TABLE "Vendor" ADD COLUMN "columnMapping" JSONB;
 
 -- CreateTable
 CREATE TABLE "VendorImportBatch" (
@@ -122,18 +80,6 @@ CREATE TABLE "StageEvent" (
 );
 
 -- CreateIndex
-CREATE INDEX "Recruiter_active_idx" ON "Recruiter"("active");
-
--- CreateIndex
-CREATE INDEX "Vendor_active_idx" ON "Vendor"("active");
-
--- CreateIndex
-CREATE INDEX "Role_status_idx" ON "Role"("status");
-
--- CreateIndex
-CREATE INDEX "VendorImportBatch_vendorId_idx" ON "VendorImportBatch"("vendorId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Submission_dedupeKey_key" ON "Submission"("dedupeKey");
 
 -- CreateIndex
@@ -163,8 +109,8 @@ CREATE INDEX "StageEvent_type_idx" ON "StageEvent"("type");
 -- CreateIndex
 CREATE INDEX "StageEvent_date_idx" ON "StageEvent"("date");
 
--- AddForeignKey
-ALTER TABLE "VendorImportBatch" ADD CONSTRAINT "VendorImportBatch_vendorId_fkey" FOREIGN KEY ("vendorId") REFERENCES "Vendor"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- CreateIndex
+CREATE INDEX "VendorImportBatch_vendorId_idx" ON "VendorImportBatch"("vendorId");
 
 -- AddForeignKey
 ALTER TABLE "Submission" ADD CONSTRAINT "Submission_recruiterId_fkey" FOREIGN KEY ("recruiterId") REFERENCES "Recruiter"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -180,3 +126,6 @@ ALTER TABLE "Submission" ADD CONSTRAINT "Submission_importBatchId_fkey" FOREIGN 
 
 -- AddForeignKey
 ALTER TABLE "StageEvent" ADD CONSTRAINT "StageEvent_submissionId_fkey" FOREIGN KEY ("submissionId") REFERENCES "Submission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "VendorImportBatch" ADD CONSTRAINT "VendorImportBatch_vendorId_fkey" FOREIGN KEY ("vendorId") REFERENCES "Vendor"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -10,11 +10,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum ActivityType {
-  SUBMISSION
-  INTERVIEW
-}
-
 enum SourceType {
   INTERNAL
   VENDOR
@@ -27,67 +22,142 @@ enum RoleStatus {
   ON_HOLD
 }
 
+enum SubmissionStage {
+  SUBMITTED
+  INTERVIEWING
+  OFFER
+  JOINED
+  REJECTED
+  DROPOUT
+}
+
+enum StageEventType {
+  SUBMITTED
+  INTERVIEW
+  OFFER
+  JOINED
+  REJECTED
+  DROPOUT
+}
+
+enum ReasonCategory {
+  CLIENT_REJECTED
+  CANDIDATE_DECLINED
+  NO_SHOW
+  SALARY_MISMATCH
+  POSITION_ON_HOLD
+  OTHER
+}
+
 model Recruiter {
-  id         String     @id @default(cuid())
-  name       String
-  active     Boolean    @default(true)
-  startMonth String?
-  notes      String?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  activities Activity[]
+  id          String       @id @default(cuid())
+  name        String
+  active      Boolean      @default(true)
+  startMonth  String?
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  submissions Submission[]
 
   @@index([active])
 }
 
 model Vendor {
-  id         String     @id @default(cuid())
-  name       String
-  contact    String?
-  email      String?
-  phone      String?
-  notes      String?
-  active     Boolean    @default(true)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  activities Activity[]
+  id            String              @id @default(cuid())
+  name          String
+  contact       String?
+  email         String?
+  phone         String?
+  notes         String?
+  active        Boolean             @default(true)
+  columnMapping Json?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  submissions   Submission[]
+  importBatches VendorImportBatch[]
 
   @@index([active])
 }
 
 model Role {
-  id          String     @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String
   client      String?
-  status      RoleStatus @default(OPEN)
+  status      RoleStatus   @default(OPEN)
   priority    String?
   dateOpened  DateTime?
   dateClosed  DateTime?
   notes       String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  activities  Activity[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  submissions Submission[]
 
   @@index([status])
 }
 
-model Activity {
-  id          String       @id @default(cuid())
-  date        DateTime
-  type        ActivityType
-  sourceType  SourceType
-  recruiterId String
-  recruiter   Recruiter    @relation(fields: [recruiterId], references: [id])
-  roleId      String
-  role        Role         @relation(fields: [roleId], references: [id])
-  vendorId    String?
-  vendor      Vendor?      @relation(fields: [vendorId], references: [id])
-  notes       String?
-  createdAt   DateTime     @default(now())
+model Submission {
+  id             String              @id @default(cuid())
+  candidateName  String
+  date           DateTime
+  sourceType     SourceType
+  recruiterId    String
+  recruiter      Recruiter           @relation(fields: [recruiterId], references: [id])
+  roleId         String
+  role           Role                @relation(fields: [roleId], references: [id])
+  vendorId       String?
+  vendor         Vendor?             @relation(fields: [vendorId], references: [id])
+  stage          SubmissionStage     @default(SUBMITTED)
+  stageChangedAt DateTime            @default(now())
+  interviewCount Int                 @default(0)
+  reasonCategory ReasonCategory?
+  reason         String?
+  notes          String?
+  externalRef    String?
+  dedupeKey      String?             @unique
+  importBatchId  String?
+  importBatch    VendorImportBatch?  @relation(fields: [importBatchId], references: [id])
+  needsReview    Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  stageEvents    StageEvent[]
 
   @@index([date])
   @@index([recruiterId])
   @@index([roleId])
   @@index([vendorId])
+  @@index([stage])
+  @@index([sourceType])
+}
+
+model StageEvent {
+  id             String         @id @default(cuid())
+  submissionId   String
+  submission     Submission     @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  type           StageEventType
+  date           DateTime
+  round          Int?
+  reasonCategory ReasonCategory?
+  reason         String?
+  notes          String?
+  createdAt      DateTime       @default(now())
+
+  @@index([submissionId])
   @@index([type])
+  @@index([date])
+}
+
+model VendorImportBatch {
+  id             String       @id @default(cuid())
+  vendorId       String
+  vendor         Vendor       @relation(fields: [vendorId], references: [id])
+  fileName       String
+  uploadedAt     DateTime     @default(now())
+  columnMapping  Json
+  createdCount   Int          @default(0)
+  updatedCount   Int          @default(0)
+  skippedCount   Int          @default(0)
+  unmatchedCount Int          @default(0)
+  submissions    Submission[]
+
+  @@index([vendorId])
 }

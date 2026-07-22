@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { addVendor } from "./actions";
 import { VendorRowActions } from "./row-actions";
@@ -86,7 +87,12 @@ export default async function VendorsPage() {
                   </span>
                 </td>
                 <td className="px-4 py-2.5 text-right">
-                  <VendorRowActions id={v.id} active={v.active} />
+                  <div className="flex items-center justify-end gap-3">
+                    <Link href={`/vendors/import?vendorId=${v.id}`} className="text-sm text-slate-600 hover:text-slate-900">
+                      Import sheet
+                    </Link>
+                    <VendorRowActions id={v.id} active={v.active} />
+                  </div>
                 </td>
               </tr>
             ))}
