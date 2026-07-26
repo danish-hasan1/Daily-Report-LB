@@ -18,7 +18,7 @@ export default async function RecruitersPage() {
         </p>
       </div>
 
-      <form action={addRecruiter} className="flex items-end gap-3 bg-white border border-slate-200 rounded-lg p-4">
+      <form action={addRecruiter} className="flex items-end gap-3 glass rounded-2xl p-4">
         <div className="flex-1">
           <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="name">
             Recruiter name
@@ -39,16 +39,16 @@ export default async function RecruitersPage() {
         </button>
       </form>
 
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <div className="glass rounded-2xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-left">
+          <thead className="bg-white/40 text-slate-500 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Name</th>
               <th className="px-4 py-2 font-medium">Status</th>
               <th className="px-4 py-2 font-medium text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-white/50">
             {recruiters.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-2.5 text-slate-900">{r.name}</td>

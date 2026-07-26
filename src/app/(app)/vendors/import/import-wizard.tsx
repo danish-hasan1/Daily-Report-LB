@@ -201,7 +201,7 @@ export function ImportWizard({
       {error && <div className="rounded-md bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2">{error}</div>}
 
       {step === "upload" && (
-        <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-4">
+        <div className="glass rounded-2xl p-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="vendorId">
               Vendor
@@ -243,7 +243,7 @@ export function ImportWizard({
       )}
 
       {step === "map" && (
-        <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-5">
+        <div className="glass rounded-2xl p-4 space-y-5">
           <p className="text-sm text-slate-500">{totalRows} data rows detected. Map the sheet&apos;s columns below.</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -361,9 +361,9 @@ export function ImportWizard({
             ))}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-lg overflow-x-auto">
+          <div className="glass rounded-2xl overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-500 text-left">
+              <thead className="bg-white/40 text-slate-500 text-left">
                 <tr>
                   <th className="px-3 py-2 font-medium">Candidate</th>
                   <th className="px-3 py-2 font-medium">Role</th>
@@ -374,7 +374,7 @@ export function ImportWizard({
                   <th className="px-3 py-2 font-medium text-right">Skip</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-white/50">
                 {resolvedRows.map((r) => {
                   const ov = overrides[r.index] ?? {};
                   const skip = ov.skip ?? false;
@@ -467,7 +467,7 @@ export function ImportWizard({
       )}
 
       {step === "done" && commitResult && (
-        <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
+        <div className="glass rounded-2xl p-4 space-y-3">
           <h2 className="text-sm font-semibold text-slate-900">Import complete</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div>

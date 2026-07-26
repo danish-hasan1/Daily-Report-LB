@@ -26,7 +26,7 @@ export default async function RolesPage() {
         </p>
       </div>
 
-      <form action={addRole} className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white border border-slate-200 rounded-lg p-4">
+      <form action={addRole} className="grid grid-cols-1 sm:grid-cols-4 gap-3 glass rounded-2xl p-4">
         <div className="sm:col-span-2">
           <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="title">
             Role title
@@ -61,9 +61,9 @@ export default async function RolesPage() {
         </div>
       </form>
 
-      <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <div className="glass rounded-2xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-left">
+          <thead className="bg-white/40 text-slate-500 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Role</th>
               <th className="px-4 py-2 font-medium">Client</th>
@@ -72,7 +72,7 @@ export default async function RolesPage() {
               <th className="px-4 py-2 font-medium text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-white/50">
             {roles.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-2.5 text-slate-900">{r.title}</td>

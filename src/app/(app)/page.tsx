@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getFunnelDataInRange, summarize, byRecruiter } from "@/lib/reports";
+import { getActivePriorityRoles, getAllInFlight } from "@/lib/dashboard";
+import { GlassCard, GlassPanel } from "@/components/glass";
+import { QuickAddButton } from "./_components/quick-add-button";
+import { PriorityRolesPanel } from "./_components/priority-roles-panel";
 
 // Always render on demand — this view reflects live database state and must
 // not be prerendered (which would also require a DB connection at build time).
@@ -17,10 +21,10 @@ function firstOfMonth() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-4">
+    <GlassCard className="p-4">
       <p className="text-xs font-medium text-slate-500">{label}</p>
       <p className="text-2xl font-semibold text-slate-900 mt-1">{value}</p>
-    </div>
+    </GlassCard>
   );
 }
 
@@ -28,16 +32,35 @@ export default async function DashboardPage() {
   const today = todayIso();
   const monthStart = firstOfMonth();
 
-  const [todayData, monthData, openRoles, activeRecruiters] = await Promise.all([
+  const [
+    todayData,
+    monthData,
+    openRoles,
+    activeRecruiters,
+    recruiters,
+    roles,
+    vendors,
+    priorityRoles,
+    inFlight,
+  ] = await Promise.all([
     getFunnelDataInRange({ from: today, to: today }),
     getFunnelDataInRange({ from: monthStart, to: today }),
     prisma.role.count({ where: { status: "OPEN" } }),
     prisma.recruiter.count({ where: { active: true } }),
+    prisma.recruiter.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
+    prisma.role.findMany({ where: { status: { in: ["OPEN", "ON_HOLD"] } }, orderBy: { title: "asc" } }),
+    prisma.vendor.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
+    getActivePriorityRoles(),
+    getAllInFlight(),
   ]);
 
   const todaySummary = summarize(todayData.submissions, todayData.stageEvents);
   const monthSummary = summarize(monthData.submissions, monthData.stageEvents);
   const monthByRecruiter = byRecruiter(monthData.submissions, monthData.stageEvents);
+
+  const recruiterOptions = recruiters.map((r) => ({ id: r.id, name: r.name }));
+  const roleOptions = roles.map((r) => ({ id: r.id, name: r.client ? `${r.title} — ${r.client}` : r.title }));
+  const vendorOptions = vendors.map((v) => ({ id: v.id, name: v.name }));
 
   return (
     <div className="space-y-6">
@@ -48,12 +71,18 @@ export default async function DashboardPage() {
             {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
           </p>
         </div>
-        <Link
-          href="/entry"
-          className="rounded-md bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-800"
-        >
-          Go to Daily Entry
-        </Link>
+        <QuickAddButton
+          date={today}
+          recruiters={recruiterOptions}
+          roles={roleOptions}
+          vendors={vendorOptions}
+          inFlight={inFlight.map((s) => ({
+            id: s.id,
+            candidateName: s.candidateName,
+            recruiterId: s.recruiterId,
+            role: { title: s.role.title },
+          }))}
+        />
       </div>
 
       <div>
@@ -76,15 +105,18 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <section className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-          <h2 className="text-sm font-semibold text-slate-900">Month to date by recruiter</h2>
+      <PriorityRolesPanel priorityRoles={priorityRoles} roles={roleOptions} recruiters={recruiterOptions} />
+
+      <GlassPanel
+        title="Month to date by recruiter"
+        action={
           <Link href="/reports" className="text-xs text-slate-500 hover:text-slate-900">
             Full reports →
           </Link>
-        </div>
+        }
+      >
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-left">
+          <thead className="bg-white/40 text-slate-500 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Recruiter</th>
               <th className="px-4 py-2 font-medium text-right">Subs</th>
@@ -93,7 +125,7 @@ export default async function DashboardPage() {
               <th className="px-4 py-2 font-medium text-right">Interviews</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-white/50">
             {monthByRecruiter.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-2 text-slate-900">{r.name}</td>
@@ -112,7 +144,7 @@ export default async function DashboardPage() {
             )}
           </tbody>
         </table>
-      </section>
+      </GlassPanel>
     </div>
   );
 }

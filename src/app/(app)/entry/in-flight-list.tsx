@@ -13,6 +13,28 @@ const STAGE_LABEL: Record<string, string> = {
   OFFER: "Offer",
 };
 
+const INTERVIEW_STAGE_STYLES: Record<string, string> = {
+  L1: "bg-amber-100 text-amber-700",
+  L2: "bg-orange-100 text-orange-700",
+  L3: "bg-orange-200 text-orange-800",
+  MANAGER: "bg-indigo-100 text-indigo-700",
+  CLIENT: "bg-purple-100 text-purple-700",
+  HR: "bg-teal-100 text-teal-700",
+  FINAL: "bg-blue-100 text-blue-700",
+  OTHER: "bg-slate-100 text-slate-600",
+};
+
+const INTERVIEW_STAGE_LABEL: Record<string, string> = {
+  L1: "L1",
+  L2: "L2",
+  L3: "L3",
+  MANAGER: "Manager",
+  CLIENT: "Client",
+  HR: "HR",
+  FINAL: "Final",
+  OTHER: "Other",
+};
+
 function daysSince(date: Date) {
   const ms = Date.now() - date.getTime();
   return Math.max(0, Math.floor(ms / 86_400_000));
@@ -26,8 +48,8 @@ export async function InFlightList({ date }: { date: string }) {
   });
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+    <div className="glass rounded-2xl overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/50">
         <div>
           <h2 className="text-sm font-semibold text-slate-900">In-flight submissions</h2>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -37,7 +59,7 @@ export async function InFlightList({ date }: { date: string }) {
         <span className="text-xs text-slate-500 whitespace-nowrap">{submissions.length} active</span>
       </div>
       <table className="w-full text-sm">
-        <thead className="bg-slate-50 text-slate-500 text-left">
+        <thead className="bg-white/40 text-slate-500 text-left">
           <tr>
             <th className="px-4 py-2 font-medium">Candidate</th>
             <th className="px-4 py-2 font-medium">Role</th>
@@ -48,7 +70,7 @@ export async function InFlightList({ date }: { date: string }) {
             <th className="px-4 py-2 font-medium text-right">Advance</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-white/50">
           {submissions.map((s) => (
             <tr key={s.id} className={s.needsReview ? "bg-amber-50" : undefined}>
               <td className="px-4 py-2.5 text-slate-900">
@@ -66,13 +88,23 @@ export async function InFlightList({ date }: { date: string }) {
                 {s.sourceType === "INTERNAL" ? "Self" : s.vendor?.name ?? "Vendor"}
               </td>
               <td className="px-4 py-2.5">
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                    STAGE_STYLES[s.stage] ?? "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  {STAGE_LABEL[s.stage] ?? s.stage}
-                </span>
+                {s.stage === "INTERVIEWING" && s.currentInterviewStage ? (
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                      INTERVIEW_STAGE_STYLES[s.currentInterviewStage]
+                    }`}
+                  >
+                    Interviewing · {INTERVIEW_STAGE_LABEL[s.currentInterviewStage]}
+                  </span>
+                ) : (
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                      STAGE_STYLES[s.stage] ?? "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {STAGE_LABEL[s.stage] ?? s.stage}
+                  </span>
+                )}
               </td>
               <td className="px-4 py-2.5 text-right text-slate-500">{daysSince(s.stageChangedAt)}</td>
               <td className="px-4 py-2.5 text-right">

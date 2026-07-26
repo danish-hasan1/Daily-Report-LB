@@ -8,6 +8,8 @@ import {
   type StatusMapping,
 } from "@/lib/vendor-import";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const file = formData.get("file");

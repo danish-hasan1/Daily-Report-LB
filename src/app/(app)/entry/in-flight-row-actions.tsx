@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { advanceStage, dismissReview } from "./actions";
-import type { ReasonCategory } from "@/generated/prisma/enums";
+import type { ReasonCategory, InterviewStage } from "@/generated/prisma/enums";
 
 const REASONS: { value: ReasonCategory; label: string }[] = [
   { value: "CLIENT_REJECTED", label: "Client Rejected" },
@@ -10,6 +10,17 @@ const REASONS: { value: ReasonCategory; label: string }[] = [
   { value: "NO_SHOW", label: "No Show" },
   { value: "SALARY_MISMATCH", label: "Salary Mismatch" },
   { value: "POSITION_ON_HOLD", label: "Position On Hold" },
+  { value: "OTHER", label: "Other" },
+];
+
+const INTERVIEW_STAGES: { value: InterviewStage; label: string }[] = [
+  { value: "L1", label: "L1" },
+  { value: "L2", label: "L2" },
+  { value: "L3", label: "L3" },
+  { value: "MANAGER", label: "Manager" },
+  { value: "CLIENT", label: "Client" },
+  { value: "HR", label: "HR" },
+  { value: "FINAL", label: "Final" },
   { value: "OTHER", label: "Other" },
 ];
 
@@ -23,12 +34,20 @@ export function InFlightRowActions({
   needsReview?: boolean;
 }) {
   const [pending, startTransition] = useTransition();
-  const [expanded, setExpanded] = useState<"REJECTED" | "DROPOUT" | null>(null);
+  const [expanded, setExpanded] = useState<"REJECTED" | "DROPOUT" | "INTERVIEW" | null>(null);
   const [reasonCategory, setReasonCategory] = useState<ReasonCategory | "">("");
   const [reason, setReason] = useState("");
+  const [interviewStage, setInterviewStage] = useState<InterviewStage>("L1");
 
-  function advance(type: "INTERVIEW" | "OFFER" | "JOINED") {
+  function advance(type: "OFFER" | "JOINED") {
     startTransition(() => advanceStage(submissionId, { type, date }));
+  }
+
+  function submitInterview() {
+    startTransition(async () => {
+      await advanceStage(submissionId, { type: "INTERVIEW", date, stage: interviewStage });
+      setExpanded(null);
+    });
   }
 
   function submitTerminal(type: "REJECTED" | "DROPOUT") {
@@ -46,6 +65,30 @@ export function InFlightRowActions({
     setExpanded(null);
     setReasonCategory("");
     setReason("");
+  }
+
+  if (expanded === "INTERVIEW") {
+    return (
+      <div className="flex flex-wrap items-center justify-end gap-2 text-xs">
+        <select
+          value={interviewStage}
+          onChange={(e) => setInterviewStage(e.target.value as InterviewStage)}
+          className="rounded-md border border-slate-300 px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
+        >
+          {INTERVIEW_STAGES.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+        <button disabled={pending} onClick={submitInterview} className="text-slate-900 hover:text-slate-700 disabled:opacity-50 font-medium">
+          Confirm
+        </button>
+        <button disabled={pending} onClick={cancel} className="text-slate-500 hover:text-slate-700">
+          Cancel
+        </button>
+      </div>
+    );
   }
 
   if (expanded) {
@@ -97,7 +140,7 @@ export function InFlightRowActions({
           Dismiss
         </button>
       )}
-      <button disabled={pending} onClick={() => advance("INTERVIEW")} className="text-slate-600 hover:text-slate-900 disabled:opacity-50">
+      <button disabled={pending} onClick={() => setExpanded("INTERVIEW")} className="text-slate-600 hover:text-slate-900 disabled:opacity-50">
         Interview
       </button>
       <button disabled={pending} onClick={() => advance("OFFER")} className="text-slate-600 hover:text-slate-900 disabled:opacity-50">

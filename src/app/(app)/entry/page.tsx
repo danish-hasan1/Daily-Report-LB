@@ -83,7 +83,7 @@ export default async function EntryPage({
           roles={roles.map((r) => ({ id: r.id, name: r.client ? `${r.title} — ${r.client}` : r.title }))}
         />
 
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
+        <div className="glass rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-slate-900">
               {new Date(dayStart).toLocaleDateString(undefined, {
@@ -109,7 +109,7 @@ export default async function EntryPage({
               const vendorSubs = subs.filter((e) => e.submission.sourceType === "VENDOR").length;
 
               return (
-                <div key={recruiterId} className="border border-slate-100 rounded-md p-3">
+                <div key={recruiterId} className="border border-white/50 rounded-md p-3">
                   <div className="flex items-baseline justify-between">
                     <span className="font-medium text-slate-900 text-sm">{group.name}</span>
                     <span className="text-xs text-slate-500">

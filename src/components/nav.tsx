@@ -17,7 +17,7 @@ export function Nav() {
   const pathname = usePathname();
 
   return (
-    <header className="border-b border-slate-200 bg-white">
+    <header className="glass sticky top-0 z-40 rounded-none border-x-0 border-t-0">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
         <div className="flex items-center gap-6">
           <span className="font-semibold text-slate-900 text-sm whitespace-nowrap">
@@ -34,7 +34,7 @@ export function Nav() {
                   className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     active
                       ? "bg-slate-900 text-white"
-                      : "text-slate-600 hover:bg-slate-100"
+                      : "text-slate-600 hover:bg-white/60"
                   }`}
                 >
                   {link.label}

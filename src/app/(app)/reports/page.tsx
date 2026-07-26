@@ -20,7 +20,7 @@ function todayIso() {
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-4">
+    <div className="glass rounded-2xl p-4">
       <p className="text-xs font-medium text-slate-500">{label}</p>
       <p className="text-2xl font-semibold text-slate-900 mt-1">{value}</p>
     </div>
@@ -69,9 +69,9 @@ export default async function ReportsPage({
         <StatCard label="Avg. Time to Fill" value={fillRows.length ? `${avgDays}d` : "—"} />
       </div>
 
-      <section className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-        <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-slate-100">Funnel</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-slate-100">
+      <section className="glass rounded-2xl overflow-hidden">
+        <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-white/50">Funnel</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-white/50">
           {[
             { label: "Submitted", value: summary.totalSubmissions },
             { label: "Interviewed", value: summary.totalInterviews },
@@ -97,12 +97,12 @@ export default async function ReportsPage({
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-          <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-slate-100">
+        <section className="glass rounded-2xl overflow-hidden">
+          <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-white/50">
             By Recruiter
           </h2>
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-left">
+            <thead className="bg-white/40 text-slate-500 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Recruiter</th>
                 <th className="px-4 py-2 font-medium text-right">Subs</th>
@@ -113,7 +113,7 @@ export default async function ReportsPage({
                 <th className="px-4 py-2 font-medium text-right">Joins</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/50">
               {recruiterRows.map((r) => (
                 <tr key={r.id}>
                   <td className="px-4 py-2 text-slate-900">{r.name}</td>
@@ -136,12 +136,12 @@ export default async function ReportsPage({
           </table>
         </section>
 
-        <section className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-          <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-slate-100">
+        <section className="glass rounded-2xl overflow-hidden">
+          <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-white/50">
             By Vendor
           </h2>
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-left">
+            <thead className="bg-white/40 text-slate-500 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Vendor</th>
                 <th className="px-4 py-2 font-medium text-right">Subs</th>
@@ -150,7 +150,7 @@ export default async function ReportsPage({
                 <th className="px-4 py-2 font-medium text-right">Joins</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/50">
               {vendorRows.map((v) => (
                 <tr key={v.id}>
                   <td className="px-4 py-2 text-slate-900">{v.name}</td>
@@ -173,12 +173,12 @@ export default async function ReportsPage({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-          <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-slate-100">
+        <section className="glass rounded-2xl overflow-hidden">
+          <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-white/50">
             Rejection / Dropout Reasons
           </h2>
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-left">
+            <thead className="bg-white/40 text-slate-500 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Reason</th>
                 <th className="px-4 py-2 font-medium">Type</th>
@@ -186,7 +186,7 @@ export default async function ReportsPage({
                 <th className="px-4 py-2 font-medium text-right">% of total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/50">
               {rejectionRows.map((r) => (
                 <tr key={`${r.type}-${r.reason}`}>
                   <td className="px-4 py-2 text-slate-900">{r.reason}</td>
@@ -208,19 +208,19 @@ export default async function ReportsPage({
           </table>
         </section>
 
-        <section className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-          <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-slate-100">
+        <section className="glass rounded-2xl overflow-hidden">
+          <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-white/50">
             Time to Fill (roles closed in range)
           </h2>
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-left">
+            <thead className="bg-white/40 text-slate-500 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Role</th>
                 <th className="px-4 py-2 font-medium">Client</th>
                 <th className="px-4 py-2 font-medium text-right">Days</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/50">
               {fillRows.map((r) => (
                 <tr key={r.id}>
                   <td className="px-4 py-2 text-slate-900">{r.title}</td>
@@ -240,12 +240,12 @@ export default async function ReportsPage({
         </section>
       </div>
 
-      <section className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-        <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-slate-100">
+      <section className="glass rounded-2xl overflow-hidden">
+        <h2 className="text-sm font-semibold text-slate-900 px-4 py-3 border-b border-white/50">
           By Role
         </h2>
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-slate-500 text-left">
+          <thead className="bg-white/40 text-slate-500 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Role</th>
               <th className="px-4 py-2 font-medium">Client</th>
@@ -255,7 +255,7 @@ export default async function ReportsPage({
               <th className="px-4 py-2 font-medium text-right">Joins</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-white/50">
             {roleRows.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-2 text-slate-900">{r.title}</td>

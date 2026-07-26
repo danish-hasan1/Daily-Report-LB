@@ -49,6 +49,23 @@ enum ReasonCategory {
   OTHER
 }
 
+enum InterviewStage {
+  L1
+  L2
+  L3
+  MANAGER
+  CLIENT
+  HR
+  FINAL
+  OTHER
+}
+
+enum PriorityLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 model Recruiter {
   id          String       @id @default(cuid())
   name        String
@@ -58,6 +75,7 @@ model Recruiter {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   submissions Submission[]
+  priorityRoles PriorityRole[]
 
   @@index([active])
 }
@@ -91,6 +109,7 @@ model Role {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   submissions Submission[]
+  priorityRoles PriorityRole[]
 
   @@index([status])
 }
@@ -109,6 +128,7 @@ model Submission {
   stage          SubmissionStage     @default(SUBMITTED)
   stageChangedAt DateTime            @default(now())
   interviewCount Int                 @default(0)
+  currentInterviewStage InterviewStage?
   reasonCategory ReasonCategory?
   reason         String?
   notes          String?
@@ -136,6 +156,7 @@ model StageEvent {
   type           StageEventType
   date           DateTime
   round          Int?
+  stage          InterviewStage?
   reasonCategory ReasonCategory?
   reason         String?
   notes          String?
@@ -160,4 +181,21 @@ model VendorImportBatch {
   submissions    Submission[]
 
   @@index([vendorId])
+}
+
+model PriorityRole {
+  id          String        @id @default(cuid())
+  roleId      String
+  role        Role          @relation(fields: [roleId], references: [id])
+  recruiterId String
+  recruiter   Recruiter     @relation(fields: [recruiterId], references: [id])
+  priority    PriorityLevel @default(MEDIUM)
+  notes       String?
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([active])
+  @@index([roleId])
+  @@index([recruiterId])
 }

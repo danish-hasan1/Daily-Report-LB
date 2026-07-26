@@ -70,6 +70,14 @@ connection) or by running the new migration's SQL in your database's SQL editor.
 > there's no automatic data carry-over. If you have real data logged under the
 > old model, export it first.
 
+> **Note:** the `interview_stage_priority_roles` migration adds
+> `StageEvent.stage` / `Submission.currentInterviewStage` (interview stage
+> labels — L1/L2/L3/Manager/Client/HR/Final/Other) and a new `PriorityRole`
+> table (the daily morning priority-role list). Existing rows are unaffected;
+> run the new statements from `prisma/setup.sql` (everything from the
+> `InterviewStage`/`PriorityLevel` enums onward) against an already-set-up
+> database.
+
 ## Day-to-day usage
 
 1. **Recruiters / Vendors / Roles** — add these once, keep them updated as your roster/vendor list/open roles change.

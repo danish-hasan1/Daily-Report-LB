@@ -11,6 +11,10 @@ import {
   timeToFillInRange,
 } from "@/lib/reports";
 
+// This route reads live database state on every request and must not be
+// prerendered (which would also require a DB connection at build time).
+export const dynamic = "force-dynamic";
+
 function isoDate(v: string | null, fallback: string) {
   return v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : fallback;
 }

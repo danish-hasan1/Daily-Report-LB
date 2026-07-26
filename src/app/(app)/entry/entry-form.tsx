@@ -27,7 +27,7 @@ export function EntryForm({
         setSourceType("INTERNAL");
         candidateNameRef.current?.focus();
       }}
-      className="bg-white border border-slate-200 rounded-lg p-4 space-y-4"
+      className="glass rounded-2xl p-4 space-y-4"
     >
       <input type="hidden" name="date" value={date} />
       <input type="hidden" name="recruiterId" value={recruiterId} />

@@ -5,6 +5,8 @@ import { computeDedupeKey, type ResolvedRow } from "@/lib/vendor-import";
 
 type CommitRow = ResolvedRow & { skip?: boolean };
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { vendorId, fileName, mapping, statusMapping, rows, saveMapping } = body as {
