@@ -63,8 +63,7 @@ export function EntryForm({
     setRows((prev) => prev.filter((r) => r.key !== key));
   }
 
-  function resetBuilder() {
-    setRecruiterId("");
+  function resetRowFields() {
     setRows([]);
     setRoleId("");
     setVendorId("");
@@ -73,8 +72,11 @@ export function EntryForm({
     setSourceType("INTERNAL");
   }
 
-  function clearRecruiter() {
-    resetBuilder();
+  function handleRecruiterChange(newId: string) {
+    if (rows.length > 0 && newId !== recruiterId) {
+      resetRowFields();
+    }
+    setRecruiterId(newId);
     setSavedMessage("");
   }
 
@@ -94,7 +96,7 @@ export function EntryForm({
           notes: r.notes || null,
         }))
       );
-      resetBuilder();
+      resetRowFields();
       setSavedMessage(`Saved ${savedCount} ${savedCount === 1 ? "entry" : "entries"} for ${savedFor}.`);
     });
   }
@@ -105,34 +107,22 @@ export function EntryForm({
         <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="recruiterId">
           Recruiter
         </label>
-        <div className="flex items-center gap-2">
-          <select
-            id="recruiterId"
-            value={recruiterId}
-            disabled={rows.length > 0}
-            onChange={(e) => setRecruiterId(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 disabled:bg-slate-50 disabled:text-slate-500"
-          >
-            <option value="">Select recruiter…</option>
-            {recruiters.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-          {rows.length > 0 && (
-            <button
-              type="button"
-              onClick={clearRecruiter}
-              className="shrink-0 text-xs text-slate-500 hover:text-red-600"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-        {rows.length > 0 && (
+        <select
+          id="recruiterId"
+          value={recruiterId}
+          onChange={(e) => handleRecruiterChange(e.target.value)}
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+        >
+          <option value="">Select recruiter…</option>
+          {recruiters.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
+          ))}
+        </select>
+        {recruiterId && (
           <p className="text-xs text-slate-400 mt-1">
-            Save or clear the staged entries below to pick a different recruiter.
+            Stays selected for the next entries — pick a different recruiter above anytime.
           </p>
         )}
       </div>
