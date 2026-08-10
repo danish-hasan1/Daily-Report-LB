@@ -4,28 +4,38 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { ActivityType, SourceType } from "@/generated/prisma/enums";
 
-export async function addActivity(formData: FormData) {
-  const date = String(formData.get("date") ?? "");
-  const recruiterId = String(formData.get("recruiterId") ?? "");
-  const type = String(formData.get("type") ?? "") as ActivityType;
-  const roleId = String(formData.get("roleId") ?? "");
-  const sourceType = String(formData.get("sourceType") ?? "") as SourceType;
-  const vendorId = String(formData.get("vendorId") ?? "") || null;
-  const notes = String(formData.get("notes") ?? "").trim() || null;
+type ActivityDraft = {
+  date: string;
+  recruiterId: string;
+  type: ActivityType;
+  roleId: string;
+  sourceType: SourceType;
+  vendorId: string | null;
+  notes: string | null;
+};
 
-  if (!date || !recruiterId || !roleId || !type || !sourceType) return;
-  if (sourceType === "VENDOR" && !vendorId) return;
+export async function addActivities(entries: ActivityDraft[]) {
+  const valid = entries.filter(
+    (e) =>
+      e.date &&
+      e.recruiterId &&
+      e.roleId &&
+      e.type &&
+      e.sourceType &&
+      (e.sourceType !== "VENDOR" || e.vendorId)
+  );
+  if (valid.length === 0) return;
 
-  await prisma.activity.create({
-    data: {
-      date: new Date(`${date}T00:00:00`),
-      recruiterId,
-      type,
-      roleId,
-      sourceType,
-      vendorId: sourceType === "VENDOR" ? vendorId : null,
-      notes,
-    },
+  await prisma.activity.createMany({
+    data: valid.map((e) => ({
+      date: new Date(`${e.date}T00:00:00`),
+      recruiterId: e.recruiterId,
+      type: e.type,
+      roleId: e.roleId,
+      sourceType: e.sourceType,
+      vendorId: e.sourceType === "VENDOR" ? e.vendorId : null,
+      notes: e.notes,
+    })),
   });
 
   revalidatePath("/entry");
