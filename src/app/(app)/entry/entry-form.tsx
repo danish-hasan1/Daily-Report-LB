@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { addActivities } from "./actions";
+
+const LAST_RECRUITER_KEY = "lb:lastRecruiterId";
 
 type Option = { id: string; name: string };
 
@@ -34,6 +36,19 @@ export function EntryForm({
   const [notes, setNotes] = useState("");
   const [pending, startTransition] = useTransition();
   const [savedMessage, setSavedMessage] = useState("");
+
+  // Restore the last recruiter worked on so it survives page reloads and
+  // navigating away and back, not just staying selected across saves.
+  // localStorage isn't available during SSR, so this has to happen in an
+  // effect rather than a lazy useState initializer (which would otherwise
+  // mismatch the server-rendered "no recruiter selected" markup).
+  useEffect(() => {
+    const stored = window.localStorage.getItem(LAST_RECRUITER_KEY);
+    if (stored && recruiters.some((r) => r.id === stored)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRecruiterId(stored);
+    }
+  }, [recruiters]);
 
   const recruiterName = recruiters.find((r) => r.id === recruiterId)?.name ?? "";
   const roleName = (id: string) => roles.find((r) => r.id === id)?.name ?? "";
@@ -78,6 +93,11 @@ export function EntryForm({
     }
     setRecruiterId(newId);
     setSavedMessage("");
+    if (newId) {
+      window.localStorage.setItem(LAST_RECRUITER_KEY, newId);
+    } else {
+      window.localStorage.removeItem(LAST_RECRUITER_KEY);
+    }
   }
 
   function saveAll() {
